@@ -1,0 +1,12 @@
+{
+  "collector": "livekernel_display",
+  "collected_at": "2026-07-25T09:16:05Z",
+  "elevated": false,
+  "ok": true,
+  "error": null,
+  "data": [
+    {"when": "2026-07-23T02:10:40Z", "device": "exgpuvd", "event_id": 4101},
+    {"when": "2026-07-22T21:02:50Z", "device": "exgpuvd", "event_id": 4101},
+    {"when": "2026-07-22T19:44:10Z", "device": "exgpuvd", "event_id": 4101}
+  ]
+}

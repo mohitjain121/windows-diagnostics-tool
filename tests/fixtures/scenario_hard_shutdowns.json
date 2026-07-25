@@ -1,0 +1,14 @@
+{
+  "collector": "crashes",
+  "collected_at": "2026-07-25T09:16:00Z",
+  "elevated": false,
+  "ok": true,
+  "error": null,
+  "data": [
+    {"when": "2026-07-25T13:07:47Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Microsoft-Windows-Kernel-Power", "bugcheck_code": null, "message": "The system has rebooted without cleanly shutting down first."},
+    {"when": "2026-07-25T04:57:18Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Microsoft-Windows-Kernel-Power", "bugcheck_code": null, "message": "The system has rebooted without cleanly shutting down first."},
+    {"when": "2026-07-25T04:38:02Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Microsoft-Windows-Kernel-Power", "bugcheck_code": null, "message": "The system has rebooted without cleanly shutting down first."},
+    {"when": "2026-07-16T06:03:12Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Microsoft-Windows-Kernel-Power", "bugcheck_code": null, "message": "The system has rebooted without cleanly shutting down first."},
+    {"when": "2026-07-05T05:06:52Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Microsoft-Windows-Kernel-Power", "bugcheck_code": null, "message": "The system has rebooted without cleanly shutting down first."}
+  ]
+}

@@ -1,0 +1,2 @@
+{"collector":"storage_smart","collected_at":"2026-07-25T09:18:10Z","elevated":true,"ok":true,"error":null,
+ "data":[{"model":"Example NVMe SSD 1TB","wear_pct":6.0,"reallocated_sectors":0,"read_errors":0,"write_errors":0,"temperature_c":41.0,"predictive_failure":false}]}

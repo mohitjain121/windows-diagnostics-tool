@@ -1,0 +1,12 @@
+{
+  "collector": "changes",
+  "collected_at": "2026-07-25T09:17:10Z",
+  "elevated": false,
+  "ok": true,
+  "error": null,
+  "data": [
+    {"when": "2026-07-22T18:30:00Z", "change_type": "driver", "name": "Example GX Display Driver (exgpuvd)", "version": "25.7.1", "source": "setupapi"},
+    {"when": "2026-07-19T12:00:00Z", "change_type": "update", "name": "Steam", "version": "3.1", "source": "program-inventory"},
+    {"when": "2026-07-10T08:00:00Z", "change_type": "os_update", "name": "KB5041234", "version": null, "source": "windows-update"}
+  ]
+}

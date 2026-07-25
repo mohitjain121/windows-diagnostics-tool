@@ -1,0 +1,11 @@
+{
+  "collector": "drivers",
+  "collected_at": "2026-07-25T09:17:00Z",
+  "elevated": false,
+  "ok": true,
+  "error": null,
+  "data": [
+    {"name": "Example GX Graphics", "version": "32.0.12033.1030", "provider": "Example Graphics Vendor", "install_date": "2026-07-22T00:00:00Z", "device_class": "Display"},
+    {"name": "Example Audio Device", "version": "6.0.9502.1", "provider": "Example Vendor", "install_date": "2025-11-02T00:00:00Z", "device_class": "MEDIA"}
+  ]
+}

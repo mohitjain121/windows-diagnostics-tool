@@ -1,0 +1,2 @@
+{"collector":"storage_smart","collected_at":"2026-07-25T09:20:00Z","elevated":true,"ok":true,"error":null,
+ "data":[{"model":"Example SSD 240","wear_pct":88.0,"reallocated_sectors":120,"read_errors":5,"write_errors":9,"temperature_c":52.0,"predictive_failure":true}]}

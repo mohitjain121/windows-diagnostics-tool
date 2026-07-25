@@ -1,0 +1,5 @@
+{"collector":"whea","collected_at":"2026-07-25T09:20:10Z","elevated":true,"ok":true,"error":null,
+ "data":[
+  {"when":"2026-07-24T10:00:00Z","severity":"uncorrected","error_source":"Processor Core","event_id":18},
+  {"when":"2026-07-24T11:00:00Z","severity":"uncorrected","error_source":"Processor Core","event_id":18},
+  {"when":"2026-07-24T12:00:00Z","severity":"uncorrected","error_source":"Processor Core","event_id":18}]}

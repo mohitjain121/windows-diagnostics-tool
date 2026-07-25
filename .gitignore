@@ -1,0 +1,9 @@
+*.local.json
+*.local.ps1
+*.log
+*.pyc
+.pytest_cache/
+.venv/
+__pycache__/
+reports/
+venv/

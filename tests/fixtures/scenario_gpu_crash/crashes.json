@@ -1,0 +1,12 @@
+{
+  "collector": "crashes",
+  "collected_at": "2026-07-25T09:16:00Z",
+  "elevated": true,
+  "ok": true,
+  "error": null,
+  "data": [
+    {"when": "2026-07-23T02:11:07Z", "kind": "bugcheck", "event_id": 1001, "source": "BugCheck", "bugcheck_code": "0x116", "message": "The computer has rebooted from a bugcheck. 0x00000116"},
+    {"when": "2026-07-23T02:10:55Z", "kind": "unexpected_shutdown", "event_id": 41, "source": "Kernel-Power", "bugcheck_code": null, "message": "The system rebooted without cleanly shutting down first."},
+    {"when": "2026-07-22T21:03:12Z", "kind": "bugcheck", "event_id": 1001, "source": "BugCheck", "bugcheck_code": "0x116", "message": "The computer has rebooted from a bugcheck. 0x00000116"}
+  ]
+}

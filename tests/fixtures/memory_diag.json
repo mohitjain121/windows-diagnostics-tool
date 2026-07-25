@@ -1,0 +1,2 @@
+{"collector":"memory_diag","collected_at":"2026-07-25T09:18:30Z","elevated":false,"ok":true,"error":null,
+ "data":[{"when":"2026-07-20T07:00:00Z","result":"The Windows Memory Diagnostic tested the computer's memory and detected no errors."}]}

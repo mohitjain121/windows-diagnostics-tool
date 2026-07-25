@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PC Health Report — {{ generated_at }}</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f7f9; --fg:#1a1a1a; --card:#fff; --muted:#666; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#15171a; --fg:#e8e8e8; --card:#1e2126; --muted:#9aa0a6; } }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 0;
+         padding: 2rem; background: var(--bg); color: var(--fg); line-height: 1.5; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .score { font-size: 3.2rem; font-weight: 800; line-height: 1; }
+  .score.good { color:#12b76a; } .score.warn { color:#f79009; } .score.bad { color:#d92d20; }
+  .card { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin: .75rem 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,.10); overflow-x: auto; }
+  .sev-critical { border-left: 6px solid #d92d20; }
+  .sev-warning  { border-left: 6px solid #f79009; }
+  .sev-info     { border-left: 6px solid #2e90fa; }
+  .badge { display:inline-block; padding:.12rem .55rem; border-radius:999px;
+           font-size:.72rem; font-weight:700; background:rgba(128,128,128,.18); }
+  .badge.critical { background:rgba(217,45,32,.16); color:#d92d20; }
+  .badge.warning  { background:rgba(247,144,9,.16); color:#b54708; }
+  .badge.info     { background:rgba(46,144,250,.16); color:#1849a9; }
+  .evidence { font-size:.92rem; margin:.3rem 0; }
+  .rec { margin-top:.55rem; padding-top:.5rem; border-top:1px solid rgba(128,128,128,.2); }
+  table { border-collapse:collapse; width:100%; font-size:.85rem; }
+  td, th { text-align:left; padding:.35rem .55rem; border-bottom:1px solid rgba(128,128,128,.22); white-space:nowrap; }
+  th { position:sticky; top:0; }
+  h1 { margin:.2rem 0; } h2 { margin:1.6rem 0 .4rem; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  .fail { color:#d92d20; font-weight:600; }
+</style></head><body><div class="wrap">
+  <h1>PC Health Report</h1>
+  <div class="muted">Generated {{ generated_at }} · read-only diagnostic, no changes were made to the system</div>
+
+  <div class="card">
+    <div class="score {{ 'good' if score >= 80 else 'warn' if score >= 50 else 'bad' }}">{{ score }}<span style="font-size:1.1rem;font-weight:400"> / 100</span></div>
+    <div class="muted">Overall health score</div>
+  </div>
+
+  <h2>Issues ({{ findings|length }})</h2>
+  {% if not findings %}<div class="card">No issues detected. ✅</div>{% endif %}
+  {% for f in findings %}
+  <div class="card sev-{{ f.severity.value }}">
+    <span class="badge {{ f.severity.value }}">{{ f.severity.value|upper }}</span>
+    <span class="badge">{{ f.confidence.label }} confidence</span>
+    <strong> {{ f.title }}</strong>
+    {% for e in f.evidence %}
+      <div class="evidence">• <b>{{ e.label }}:</b> {{ e.detail }}{% if e.when %} <span class="muted">({{ e.when.strftime('%Y-%m-%d %H:%M UTC') }})</span>{% endif %}</div>
+    {% endfor %}
+    <div class="rec">→ {{ f.recommendation }}</div>
+  </div>
+  {% endfor %}
+
+  <h2>Change Timeline <span class="muted">({{ changes|length }} recent changes)</span></h2>
+  <div class="card">
+    {% if changes %}<table><tr><th>When (UTC)</th><th>Type</th><th>What</th><th>Source</th></tr>
+      {% for c in changes %}<tr><td>{{ c.when.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ c.change_type }}</td><td>{{ c.name }} {{ c.version or '' }}</td><td>{{ c.source }}</td></tr>{% endfor %}
+    </table>{% else %}<div class="muted">No recorded changes.</div>{% endif %}
+  </div>
+
+  <h2>Collectors</h2>
+  <div class="card"><table><tr><th>Collector</th><th>Status</th><th>Elevated</th><th>Note</th></tr>
+    {% for m in meta %}<tr><td>{{ m.name }}</td><td>{% if m.ok %}ok{% else %}<span class="fail">FAILED</span>{% endif %}</td><td>{{ m.elevated }}</td><td class="muted">{{ m.error or '' }}</td></tr>{% endfor %}
+  </table></div>
+</div></body></html>
