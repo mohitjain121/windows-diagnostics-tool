@@ -56,7 +56,7 @@ def run_synthesis(timeline: Timeline, findings: list[Finding],
 
 _DISCRETE_GPU = ("radeon rx", "radeon pro", "geforce", "rtx", "gtx", "arc a")
 _INTEGRATED_GPU = ("radeon graphics", "radeon(tm) graphics", "uhd graphics",
-                   "iris", "hd graphics", "vega")
+                   "iris", "hd graphics")
 _TUNING_TOOLS = ("ryzen master", "afterburner", "overclock", "tuning",
                  "precision boost", "wattman")
 
@@ -66,15 +66,25 @@ _MEM_BUGCHECKS = ("0x1a", "0x50", "0x4e", "0x1e")
 def _has_discrete_gpu(timeline: Timeline) -> bool:
     if not timeline.snapshot:
         return False
-    names = " ".join(timeline.snapshot.gpu_names).lower()
-    return any(k in names for k in _DISCRETE_GPU)
+    for name in timeline.snapshot.gpu_names:
+        name_lower = name.lower()
+        if any(k in name_lower for k in _DISCRETE_GPU):
+            return True
+    return False
 
 
 def _has_integrated_gpu(timeline: Timeline) -> bool:
     if not timeline.snapshot:
         return False
-    names = " ".join(timeline.snapshot.gpu_names).lower()
-    return any(k in names for k in _INTEGRATED_GPU)
+    for name in timeline.snapshot.gpu_names:
+        name_lower = name.lower()
+        # Integrated GPU is present if this name contains an integrated marker
+        # AND does NOT contain a discrete marker (to exclude discrete cards like "Radeon RX Vega")
+        has_integrated_marker = any(k in name_lower for k in _INTEGRATED_GPU)
+        has_discrete_marker = any(k in name_lower for k in _DISCRETE_GPU)
+        if has_integrated_marker and not has_discrete_marker:
+            return True
+    return False
 
 
 def _tuning_change(timeline: Timeline):
