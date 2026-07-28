@@ -10,6 +10,7 @@ from pcdiag.models import (
     Disk,
     DisplayResetEvent,
     Driver,
+    MemoryConfig,
     MemoryDiagResult,
     MinidumpFile,
     SystemSnapshot,
@@ -183,6 +184,23 @@ def _norm_reliability(result: CollectorResult, timeline: Timeline) -> None:
         ))
 
 
+def _norm_memory_config(result: CollectorResult, timeline: Timeline) -> None:
+    if not result.data:
+        return
+    row = result.data[0]
+    configured = row.get("configured_mts")
+    overclocked = None
+    if configured is not None:
+        overclocked = int(configured) > 5600  # DDR5 JEDEC ceiling
+    timeline.memory_config = MemoryConfig(
+        dimm_count=int(row.get("dimm_count") or 0),
+        rated_mts=row.get("rated_mts"),
+        configured_mts=configured,
+        part_number=row.get("part_number", ""),
+        overclocked=overclocked,
+    )
+
+
 # name -> normalizer function.
 NORMALIZERS = {
     "system_snapshot": _norm_system_snapshot,
@@ -194,6 +212,7 @@ NORMALIZERS = {
     "storage_smart": _norm_storage_smart,
     "minidump": _norm_minidump,
     "memory_diag": _norm_memory_diag,
+    "memory_config": _norm_memory_config,
     "updates": _norm_updates,
     "reliability": _norm_reliability,
 }

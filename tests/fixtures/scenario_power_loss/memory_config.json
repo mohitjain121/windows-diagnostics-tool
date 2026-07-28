@@ -1,0 +1,1 @@
+{"collector":"memory_config","collected_at":"2026-07-28T00:00:00Z","elevated":true,"ok":true,"error":null,"data":[{"dimm_count":2,"rated_mts":4800,"configured_mts":4800,"part_number":"EXAMPLE-KIT"}]}

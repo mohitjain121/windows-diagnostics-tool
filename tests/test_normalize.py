@@ -76,3 +76,24 @@ def test_norm_crashes_reads_actual_time_and_flags():
     dirty = [c for c in t.crashes if c.event_id == 6008][0]
     assert dirty.actual_local_hour == 19
     assert dirty.actual_when is not None and dirty.actual_when.hour == 14
+
+
+def test_norm_memory_config_not_overclocked():
+    raw = {"collector":"memory_config","collected_at":"2026-07-28T00:00:00Z",
+           "elevated":True,"ok":True,"error":None,
+           "data":[{"dimm_count":2,"rated_mts":4800,"configured_mts":4800,"part_number":"EXAMPLE"}]}
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    t = build_timeline({"memory_config": parse_collector_result(raw)})
+    assert t.memory_config.dimm_count == 2
+    assert t.memory_config.overclocked is False
+
+
+def test_norm_memory_config_overclocked_when_above_jedec():
+    raw = {"collector":"memory_config","collected_at":"2026-07-28T00:00:00Z",
+           "elevated":True,"ok":True,"error":None,
+           "data":[{"dimm_count":2,"rated_mts":6000,"configured_mts":6000,"part_number":"EXAMPLE"}]}
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    t = build_timeline({"memory_config": parse_collector_result(raw)})
+    assert t.memory_config.overclocked is True
