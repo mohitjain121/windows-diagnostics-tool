@@ -97,3 +97,17 @@ def test_norm_memory_config_overclocked_when_above_jedec():
     from pcdiag.normalize import build_timeline
     t = build_timeline({"memory_config": parse_collector_result(raw)})
     assert t.memory_config.overclocked is True
+
+
+def test_norm_thermal_splits_events_and_temps():
+    raw = {"collector":"thermal","collected_at":"2026-07-28T00:00:00Z",
+           "elevated":True,"ok":True,"error":None,
+           "data":[
+             {"type":"event","when":"2026-07-27T17:00:00Z","kind":"throttle","source":"Kernel-Processor-Power","detail":"processor throttled"},
+             {"type":"temp","name":"ACPI thermal zone","value":68.0,"unit":"C"}
+           ]}
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    t = build_timeline({"thermal": parse_collector_result(raw)})
+    assert len(t.thermal_events) == 1 and t.thermal_events[0].kind == "throttle"
+    assert len(t.sensors) == 1 and t.sensors[0].kind == "temp" and t.sensors[0].value == 68.0

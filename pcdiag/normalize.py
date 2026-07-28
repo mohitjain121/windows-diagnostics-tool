@@ -13,7 +13,9 @@ from pcdiag.models import (
     MemoryConfig,
     MemoryDiagResult,
     MinidumpFile,
+    SensorReading,
     SystemSnapshot,
+    ThermalEvent,
     Timeline,
     WheaError,
 )
@@ -201,6 +203,21 @@ def _norm_memory_config(result: CollectorResult, timeline: Timeline) -> None:
     )
 
 
+def _norm_thermal(result: CollectorResult, timeline: Timeline) -> None:
+    for row in result.data:
+        if row.get("type") == "temp":
+            timeline.sensors.append(SensorReading(
+                name=row.get("name", "thermal zone"), kind="temp",
+                value=float(row.get("value") or 0.0), unit=row.get("unit", "C")))
+        elif row.get("type") == "event":
+            when = _iso(row.get("when"))
+            if when is None:
+                continue
+            timeline.thermal_events.append(ThermalEvent(
+                when=when, kind=row.get("kind", "throttle"),
+                source=row.get("source", ""), detail=row.get("detail", "")))
+
+
 # name -> normalizer function.
 NORMALIZERS = {
     "system_snapshot": _norm_system_snapshot,
@@ -213,6 +230,7 @@ NORMALIZERS = {
     "minidump": _norm_minidump,
     "memory_diag": _norm_memory_diag,
     "memory_config": _norm_memory_config,
+    "thermal": _norm_thermal,
     "updates": _norm_updates,
     "reliability": _norm_reliability,
 }
