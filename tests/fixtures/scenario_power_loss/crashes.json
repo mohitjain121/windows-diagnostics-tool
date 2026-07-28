@@ -1,0 +1,15 @@
+{
+  "collector": "crashes",
+  "collected_at": "2026-07-28T00:00:00Z",
+  "elevated": true, "ok": true, "error": null,
+  "data": [
+    {"when":"2026-07-13T15:00:00Z","kind":"dirty_shutdown","event_id":6008,"source":"EventLog","bugcheck_code":null,"message":"unexpected","actual_when":"2026-07-13T15:00:00Z","actual_local_hour":20},
+    {"when":"2026-07-13T15:00:05Z","kind":"unexpected_shutdown","event_id":41,"source":"Kernel-Power","bugcheck_code":null,"message":"rebooted","sleep_in_progress":0,"power_button":0},
+    {"when":"2026-07-15T14:30:00Z","kind":"dirty_shutdown","event_id":6008,"source":"EventLog","bugcheck_code":null,"message":"unexpected","actual_when":"2026-07-15T14:30:00Z","actual_local_hour":21},
+    {"when":"2026-07-15T14:30:05Z","kind":"unexpected_shutdown","event_id":41,"source":"Kernel-Power","bugcheck_code":null,"message":"rebooted","sleep_in_progress":0,"power_button":0},
+    {"when":"2026-07-20T18:00:00Z","kind":"dirty_shutdown","event_id":6008,"source":"EventLog","bugcheck_code":null,"message":"unexpected","actual_when":"2026-07-20T18:00:00Z","actual_local_hour":23},
+    {"when":"2026-07-20T18:00:05Z","kind":"unexpected_shutdown","event_id":41,"source":"Kernel-Power","bugcheck_code":null,"message":"rebooted","sleep_in_progress":0,"power_button":0},
+    {"when":"2026-07-27T17:02:00Z","kind":"dirty_shutdown","event_id":6008,"source":"EventLog","bugcheck_code":null,"message":"unexpected","actual_when":"2026-07-27T17:02:00Z","actual_local_hour":19},
+    {"when":"2026-07-27T17:02:05Z","kind":"unexpected_shutdown","event_id":41,"source":"Kernel-Power","bugcheck_code":null,"message":"rebooted","sleep_in_progress":0,"power_button":0}
+  ]
+}

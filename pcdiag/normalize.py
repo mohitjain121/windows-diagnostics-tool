@@ -53,6 +53,7 @@ def _norm_crashes(result: CollectorResult, timeline: Timeline) -> None:
         when = _iso(row.get("when"))
         if when is None:
             continue
+        hour = row.get("actual_local_hour")
         timeline.crashes.append(CrashEvent(
             when=when,
             kind=row.get("kind", "unknown"),
@@ -60,6 +61,10 @@ def _norm_crashes(result: CollectorResult, timeline: Timeline) -> None:
             source=row.get("source", ""),
             bugcheck_code=row.get("bugcheck_code"),
             message=row.get("message", ""),
+            actual_when=_iso(row.get("actual_when")),
+            actual_local_hour=int(hour) if hour is not None else None,
+            sleep_in_progress=row.get("sleep_in_progress"),
+            power_button=row.get("power_button"),
         ))
 
 

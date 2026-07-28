@@ -50,3 +50,29 @@ def test_build_timeline_maps_remaining_collectors():
     assert timeline.disks[0].wear_pct == 6.0
     assert timeline.minidumps[0].filename.endswith(".dmp")
     assert "no errors" in timeline.memory_diags[0].result
+
+
+def test_norm_crashes_reads_actual_time_and_flags():
+    raw = {
+        "collector": "crashes",
+        "collected_at": "2026-07-28T00:00:00Z",
+        "elevated": True, "ok": True, "error": None,
+        "data": [
+            {"when": "2026-07-27T17:02:24Z", "kind": "unexpected_shutdown",
+             "event_id": 41, "source": "Kernel-Power", "bugcheck_code": None,
+             "message": "rebooted without cleanly shutting down",
+             "sleep_in_progress": 0, "power_button": 0},
+            {"when": "2026-07-27T17:02:30Z", "kind": "dirty_shutdown",
+             "event_id": 6008, "source": "EventLog", "bugcheck_code": None,
+             "message": "previous shutdown unexpected",
+             "actual_when": "2026-07-27T14:21:09Z", "actual_local_hour": 19},
+        ],
+    }
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    t = build_timeline({"crashes": parse_collector_result(raw)})
+    kp = [c for c in t.crashes if c.event_id == 41][0]
+    assert kp.sleep_in_progress == 0 and kp.power_button == 0
+    dirty = [c for c in t.crashes if c.event_id == 6008][0]
+    assert dirty.actual_local_hour == 19
+    assert dirty.actual_when is not None and dirty.actual_when.hour == 14
