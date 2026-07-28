@@ -1,0 +1,5 @@
+{"collector":"crashes","collected_at":"2026-07-28T00:00:00Z","elevated":true,"ok":true,"error":null,
+ "data":[
+   {"when":"2026-07-20T05:00:00Z","kind":"bugcheck","event_id":1001,"source":"WER","bugcheck_code":"0x9f","message":"bugcheck 0x9f"},
+   {"when":"2026-07-26T06:30:00Z","kind":"bugcheck","event_id":1001,"source":"WER","bugcheck_code":"0x9f","message":"bugcheck 0x9f"}
+ ]}

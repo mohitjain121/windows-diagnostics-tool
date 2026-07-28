@@ -1,0 +1,2 @@
+{"collector":"changes","collected_at":"2026-07-28T00:00:00Z","elevated":true,"ok":true,"error":null,
+ "data":[{"when":"2026-07-25T20:00:00Z","change_type":"driver","name":"Example Display Driver","version":"1.2","source":"pnp"}]}

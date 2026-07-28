@@ -1,0 +1,2 @@
+{"collector":"minidump","collected_at":"2026-07-28T00:00:00Z","elevated":true,"ok":true,"error":null,
+ "data":[{"when":"2026-07-26T06:30:00Z","filename":"072600-00000-01.dmp","bugcheck_code":"0x9f"}]}

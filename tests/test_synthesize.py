@@ -105,3 +105,28 @@ def test_power_loss_no_integrated_step_for_discrete_vega_only():
     # Assert NO integrated-graphics step exists
     assert not any("integrated" in s.detail.lower() for s in diag.action_plan), \
         "Should not have integrated-graphics step for discrete-only GPU"
+
+
+def test_software_bsod_classifies_and_correlates():
+    import json
+    from pathlib import Path
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    from pcdiag.rules import run_rules
+
+    fx = Path(__file__).parent / "fixtures" / "scenario_software_bsod"
+    results = {n: parse_collector_result(json.loads((fx / f"{n}.json").read_text("utf-8")))
+               for n in ("crashes", "minidump", "changes")}
+    timeline = build_timeline(results)
+    diagnoses = run_synthesis(timeline, run_rules(timeline, cfg()), cfg())
+
+    bsod = [d for d in diagnoses if d.id == "software_bsod"]
+    assert bsod, "expected a software_bsod diagnosis"
+    assert "DRIVER_POWER_STATE_FAILURE" in bsod[0].root_cause
+    assert any(s.tier == 1 for s in bsod[0].action_plan)
+
+
+def test_software_bsod_absent_without_bugcheck_or_dump():
+    from pcdiag.synthesize import _synthesize_software_bsod
+    from pcdiag.models import Timeline
+    assert _synthesize_software_bsod(Timeline(), [], cfg()) is None

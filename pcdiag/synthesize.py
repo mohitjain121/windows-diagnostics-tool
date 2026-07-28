@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from pcdiag.config import Config
+from pcdiag.correlate import most_recent_change_before
 from pcdiag.models import Timeline
 from pcdiag.rules import Confidence, Finding, Severity
 
@@ -193,4 +194,96 @@ def _synthesize_power_loss(timeline: Timeline, findings: list[Finding],
                                 if f.id in ("unexpected_shutdowns", "change_vs_symptom")])
 
 
+# bugcheck code -> (name, plain-language cause, family tag)
+_BUGCHECK_FAMILIES = {
+    "0x9f": ("DRIVER_POWER_STATE_FAILURE", "a driver stalled during a sleep/wake power transition", "driver_power"),
+    "0x116": ("VIDEO_TDR_ERROR", "the display driver timed out and could not recover", "gpu"),
+    "0x117": ("VIDEO_TDR_TIMEOUT_DETECTED", "the display driver stopped responding", "gpu"),
+    "0x1a": ("MEMORY_MANAGEMENT", "a memory-management fault", "memory"),
+    "0x50": ("PAGE_FAULT_IN_NONPAGED_AREA", "an invalid memory access (RAM or a driver)", "memory"),
+    "0x4e": ("PFN_LIST_CORRUPT", "a corrupted memory page list (often RAM)", "memory"),
+    "0x1e": ("KMODE_EXCEPTION_NOT_HANDLED", "an unhandled kernel exception (often a driver)", "driver"),
+    "0xd1": ("DRIVER_IRQL_NOT_LESS_OR_EQUAL", "a driver accessed memory at the wrong IRQL", "driver"),
+}
+
+
+def _bsod_action_plan(family: str, suspect) -> list[ActionStep]:
+    steps: list[ActionStep] = []
+    steps.append(ActionStep(
+        tier=1, title="Identify the faulting driver", effort="free",
+        detail="Open the crash dump in WinDbg and run `!analyze -v` to see the "
+               "module named in the bugcheck.",
+        rationale="Names the exact driver instead of guessing."))
+    if suspect is not None:
+        steps.append(ActionStep(
+            tier=1, title="Roll back the recently changed driver", effort="free",
+            detail=f"'{suspect.name}' changed just before the crashes; roll it back "
+                   "or clean-reinstall the previous stable version.",
+            rationale="The change lines up with the onset of the bugchecks."))
+    if family == "memory":
+        steps.append(ActionStep(
+            tier=1, title="Test the RAM", effort="overnight",
+            detail="Run MemTest86 for several passes.",
+            rationale="Memory bugchecks are frequently bad RAM or an unstable profile."))
+        steps.append(ActionStep(
+            tier=2, title="Disable the memory overclock", effort="10 min",
+            detail="Turn off EXPO/XMP in firmware and retest; then test one stick at a time.",
+            rationale="An aggressive memory profile causes memory-family bugchecks."))
+    elif family == "gpu":
+        steps.append(ActionStep(
+            tier=1, title="Clean-reinstall the GPU driver", effort="free",
+            detail="Use DDU, then install the latest stable driver.",
+            rationale="TDR bugchecks are usually a bad or corrupt display driver."))
+    elif family == "driver_power":
+        steps.append(ActionStep(
+            tier=2, title="Update chipset, GPU, network, and storage drivers", effort="20 min",
+            detail="0x9F is a power-transition stall; update the drivers involved in "
+                   "sleep/wake (chipset, GPU, NIC, NVMe).",
+            rationale="A single lagging driver blocks the power transition."))
+    else:
+        steps.append(ActionStep(
+            tier=2, title="Update or remove the flagged driver", effort="20 min",
+            detail="Update the driver named by `!analyze -v`; if recently added, remove it.",
+            rationale="Driver-family bugchecks resolve by fixing the named module."))
+    return steps
+
+
+def _synthesize_software_bsod(timeline: Timeline, findings: list[Finding],
+                              config: Config) -> "Diagnosis | None":
+    coded = [c for c in timeline.crashes if c.bugcheck_code]
+    dumps = timeline.minidumps
+    if not coded and not dumps:
+        return None
+    # Most recent bugcheck code from crashes, else from a dump.
+    if coded:
+        latest = max(coded, key=lambda c: c.when)
+        code = (latest.bugcheck_code or "").lower()
+        onset = latest.when
+    else:
+        latest = max(dumps, key=lambda d: d.when)
+        code = (latest.bugcheck_code or "").lower()
+        onset = latest.when
+    name, cause, family = _BUGCHECK_FAMILIES.get(
+        code, ("Unexpected bugcheck", "an unclassified kernel fault", "driver"))
+    suspect = most_recent_change_before(
+        [c for c in timeline.changes if c.change_type in ("driver", "install", "uninstall")],
+        onset, config.change_window_days)
+    count = len(coded) if coded else len(dumps)
+    code_label = code if code else "unknown"
+    return Diagnosis(
+        id="software_bsod",
+        title="Software BSOD (kernel bugcheck)",
+        root_cause=f"{name} — {cause}.",
+        confidence=Confidence.HIGH if count >= 2 else Confidence.MEDIUM,
+        severity=Severity.CRITICAL,
+        whats_happening=(f"{count} bugcheck crash(es); the most recent was {code_label} "
+                         f"({name}). Windows captured a dump, so this is a software/driver "
+                         "fault, not an instant power loss."),
+        ruled_out=[], action_plan=_bsod_action_plan(family, suspect),
+        supporting_finding_ids=[f.id for f in findings
+                                if f.id in ("gpu_driver_instability", "change_vs_symptom",
+                                            "memory_errors")])
+
+
 SYNTHESIZERS.append(_synthesize_power_loss)
+SYNTHESIZERS.append(_synthesize_software_bsod)
