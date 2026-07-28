@@ -22,6 +22,19 @@ def findings_to_dicts(findings: list[Finding]) -> list[dict]:
     } for f in findings]
 
 
+def diagnoses_to_dicts(diagnoses: list) -> list[dict]:
+    return [{
+        "id": d.id, "title": d.title, "root_cause": d.root_cause,
+        "severity": d.severity.value, "confidence": d.confidence.value,
+        "whats_happening": d.whats_happening, "timing": d.timing,
+        "ruled_out": list(d.ruled_out),
+        "action_plan": [{"tier": s.tier, "title": s.title, "detail": s.detail,
+                         "effort": s.effort, "rationale": s.rationale}
+                        for s in d.action_plan],
+        "supporting_finding_ids": list(d.supporting_finding_ids),
+    } for d in diagnoses]
+
+
 def timeline_summary(timeline: Timeline) -> dict:
     return {
         "crashes": len(timeline.crashes),
@@ -33,14 +46,17 @@ def timeline_summary(timeline: Timeline) -> dict:
 
 
 def render_report(findings: list[Finding], timeline: Timeline, score: int,
-                  out_dir: Path, generated_at: datetime) -> tuple[Path, Path]:
+                  out_dir: Path, generated_at: datetime,
+                  diagnoses: list | None = None) -> tuple[Path, Path]:
+    diagnoses = diagnoses or []
     out_dir.mkdir(parents=True, exist_ok=True)
     env = Environment(loader=FileSystemLoader(str(_TEMPLATE_DIR)),
                       autoescape=select_autoescape(["html"]))
     template = env.get_template("report.html.j2")
     changes = sorted(timeline.changes, key=lambda c: c.when, reverse=True)
     html = template.render(
-        findings=findings, score=score,
+        findings=findings, score=score, diagnoses=diagnoses,
+        sensors=timeline.sensors,
         generated_at=generated_at.strftime("%Y-%m-%d %H:%M UTC"),
         changes=changes, meta=timeline.meta)
     html_path = out_dir / "report.html"
@@ -49,6 +65,7 @@ def render_report(findings: list[Finding], timeline: Timeline, score: int,
     json_path.write_text(json.dumps({
         "generated_at": generated_at.isoformat(),
         "score": score,
+        "diagnoses": diagnoses_to_dicts(diagnoses),
         "findings": findings_to_dicts(findings),
         "timeline_summary": timeline_summary(timeline),
     }, indent=2), encoding="utf-8")

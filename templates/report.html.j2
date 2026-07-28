@@ -29,6 +29,14 @@
   h1 { margin:.2rem 0; } h2 { margin:1.6rem 0 .4rem; }
   .muted { color:var(--muted); font-size:.85rem; }
   .fail { color:#d92d20; font-weight:600; }
+  .hero { border-left: 6px solid #7c3aed; }
+  .hero h3 { margin:.2rem 0 .4rem; font-size:1.25rem; }
+  .rootcause { font-weight:600; margin:.2rem 0 .5rem; }
+  .tier { margin:.5rem 0; }
+  .tier h4 { margin:.4rem 0 .2rem; font-size:.95rem; }
+  .step { margin:.25rem 0 .25rem .5rem; padding-left:.6rem; border-left:2px solid rgba(124,58,237,.35); }
+  .step .why { color:var(--muted); font-size:.85rem; }
+  .ruled li { margin:.15rem 0; }
 </style></head><body><div class="wrap">
   <h1>PC Health Report</h1>
   <div class="muted">Generated {{ generated_at }} · read-only diagnostic, no changes were made to the system</div>
@@ -37,6 +45,49 @@
     <div class="score {{ 'good' if score >= 80 else 'warn' if score >= 50 else 'bad' }}">{{ score }}<span style="font-size:1.1rem;font-weight:400"> / 100</span></div>
     <div class="muted">Overall health score</div>
   </div>
+
+  {% if diagnoses %}
+  {% set primary = diagnoses[0] %}
+  <h2>Primary Diagnosis</h2>
+  <div class="card hero sev-{{ primary.severity.value }}">
+    <span class="badge {{ primary.severity.value }}">{{ primary.severity.value|upper }}</span>
+    <span class="badge">{{ primary.confidence.label }} confidence</span>
+    <h3>{{ primary.title }}</h3>
+    <div class="rootcause">Root cause: {{ primary.root_cause }}</div>
+    <div class="evidence">{{ primary.whats_happening }}</div>
+    {% if primary.timing %}<div class="evidence"><b>Timing:</b> {{ primary.timing }}</div>{% endif %}
+    {% if primary.ruled_out %}
+      <div class="rec"><b>Ruled out</b><ul class="ruled">
+        {% for r in primary.ruled_out %}<li>{{ r }}</li>{% endfor %}
+      </ul></div>
+    {% endif %}
+    <div class="rec"><b>Action plan</b>
+      {% for tier in [1, 2, 3] %}
+        {% set steps = primary.action_plan | selectattr('tier', 'equalto', tier) | list %}
+        {% if steps %}
+        <div class="tier"><h4>Tier {{ tier }}</h4>
+          {% for s in steps %}
+          <div class="step"><b>{{ s.title }}</b> <span class="muted">({{ s.effort }})</span><br>
+            {{ s.detail }}<br><span class="why">Why: {{ s.rationale }}</span></div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% if diagnoses|length > 1 %}
+  <h2>Other diagnoses</h2>
+  {% for d in diagnoses[1:] %}
+  <div class="card sev-{{ d.severity.value }}">
+    <span class="badge {{ d.severity.value }}">{{ d.severity.value|upper }}</span>
+    <span class="badge">{{ d.confidence.label }} confidence</span>
+    <strong> {{ d.title }}</strong>
+    <div class="rootcause">Root cause: {{ d.root_cause }}</div>
+    <div class="evidence">{{ d.whats_happening }}</div>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% endif %}
 
   <h2>Issues ({{ findings|length }})</h2>
   {% if not findings %}<div class="card">No issues detected. ✅</div>{% endif %}
@@ -58,6 +109,13 @@
       {% for c in changes %}<tr><td>{{ c.when.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ c.change_type }}</td><td>{{ c.name }} {{ c.version or '' }}</td><td>{{ c.source }}</td></tr>{% endfor %}
     </table>{% else %}<div class="muted">No recorded changes.</div>{% endif %}
   </div>
+
+  {% if sensors %}
+  <h2>Sensors <span class="muted">(best-effort)</span></h2>
+  <div class="card"><table><tr><th>Sensor</th><th>Type</th><th>Value</th></tr>
+    {% for s in sensors %}<tr><td>{{ s.name }}</td><td>{{ s.kind }}</td><td>{{ s.value }} {{ s.unit }}</td></tr>{% endfor %}
+  </table></div>
+  {% endif %}
 
   <h2>Collectors</h2>
   <div class="card"><table><tr><th>Collector</th><th>Status</th><th>Elevated</th><th>Note</th></tr>
