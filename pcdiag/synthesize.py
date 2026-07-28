@@ -287,3 +287,48 @@ def _synthesize_software_bsod(timeline: Timeline, findings: list[Finding],
 
 SYNTHESIZERS.append(_synthesize_power_loss)
 SYNTHESIZERS.append(_synthesize_software_bsod)
+
+
+_CPU_TEMP_LIMIT = 95.0
+_GPU_TEMP_LIMIT = 100.0
+
+
+def _synthesize_thermal(timeline: Timeline, findings: list[Finding],
+                        config: Config) -> "Diagnosis | None":
+    events = timeline.thermal_events
+    hot = [s for s in timeline.sensors
+           if s.kind == "temp" and s.value >= _CPU_TEMP_LIMIT]
+    critical = [e for e in events if e.kind == "critical"]
+    if not events and not hot:
+        return None
+    n = len(events)
+    detail_bits = []
+    if n:
+        detail_bits.append(f"{n} thermal throttle/critical event(s)")
+    if hot:
+        detail_bits.append(f"a sensor reached {max(s.value for s in hot):.0f}°C")
+    steps = [
+        ActionStep(tier=1, title="Clean dust and improve airflow", effort="free",
+                   detail="Clear dust from heatsinks/fans and confirm intake/exhaust airflow.",
+                   rationale="Blocked airflow is the most common cause of throttling."),
+        ActionStep(tier=2, title="Reseat the cooler and repaste", effort="30 min",
+                   detail="Remount the CPU cooler with fresh thermal paste.",
+                   rationale="Poor cooler contact or dried paste drives temps into throttle."),
+        ActionStep(tier=2, title="Set an aggressive fan curve", effort="10 min",
+                   detail="Raise the fan curve in firmware or the vendor utility.",
+                   rationale="Ramps cooling earlier so the chip does not reach its limit."),
+        ActionStep(tier=3, title="Verify VRM/case cooling", effort="isolation",
+                   detail="On compact boards, add airflow over the VRM and check case fans.",
+                   rationale="VRM overheating can shut the system down under sustained load."),
+    ]
+    return Diagnosis(
+        id="thermal",
+        title="Overheating / thermal throttling",
+        root_cause="The CPU/GPU is reaching its thermal limit under load.",
+        confidence=Confidence.HIGH if (critical or hot) else Confidence.MEDIUM,
+        severity=Severity.CRITICAL if critical else Severity.WARNING,
+        whats_happening="; ".join(detail_bits) + ".",
+        ruled_out=[], action_plan=steps, supporting_finding_ids=[])
+
+
+SYNTHESIZERS.append(_synthesize_thermal)

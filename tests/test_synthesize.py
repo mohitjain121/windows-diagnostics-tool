@@ -130,3 +130,24 @@ def test_software_bsod_absent_without_bugcheck_or_dump():
     from pcdiag.synthesize import _synthesize_software_bsod
     from pcdiag.models import Timeline
     assert _synthesize_software_bsod(Timeline(), [], cfg()) is None
+
+
+def test_thermal_diagnosis_from_throttle_events():
+    import json
+    from pathlib import Path
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+
+    fx = Path(__file__).parent / "fixtures" / "scenario_thermal"
+    t = build_timeline({"thermal": parse_collector_result(
+        json.loads((fx / "thermal.json").read_text("utf-8")))})
+    diagnoses = run_synthesis(t, [], cfg())
+    thermal = [d for d in diagnoses if d.id == "thermal"]
+    assert thermal, "expected a thermal diagnosis"
+    assert any(s.tier == 1 for s in thermal[0].action_plan)
+
+
+def test_thermal_absent_when_no_signals():
+    from pcdiag.synthesize import _synthesize_thermal
+    from pcdiag.models import Timeline
+    assert _synthesize_thermal(Timeline(), [], cfg()) is None
