@@ -27,6 +27,12 @@ pip install -r requirements.txt
 python diagnose.py          # collect, analyze, open the report
 ```
 
+```
+python diagnose.py            # baseline: collect, diagnose, open the report
+python diagnose.py --sensors  # opt-in: also read temps/fans/voltages via
+                              # LibreHardwareMonitor (needs admin + the DLL in tools/)
+```
+
 Run from an **Administrator** terminal for full hardware/health access. The
 report is saved to `reports/`. Run the tests with `python -m pytest`.
 
@@ -36,6 +42,10 @@ Recurring shutdowns and their nature, instability that follows a recent driver
 or software change, storage / memory / hardware-error warning signs, sleep
 stability problems, and startup and background bloat — each with supporting
 evidence and a suggested action.
+
+It now also synthesizes a Primary Diagnosis — a ranked root-cause verdict with
+the reasoning it ruled out and a Tier 1/2/3 action plan — from the collected
+signals (all offline, deterministic).
 
 ## What this tool uncovered (and what changed)
 
