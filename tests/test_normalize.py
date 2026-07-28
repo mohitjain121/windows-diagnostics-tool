@@ -111,3 +111,13 @@ def test_norm_thermal_splits_events_and_temps():
     t = build_timeline({"thermal": parse_collector_result(raw)})
     assert len(t.thermal_events) == 1 and t.thermal_events[0].kind == "throttle"
     assert len(t.sensors) == 1 and t.sensors[0].kind == "temp" and t.sensors[0].value == 68.0
+
+
+def test_norm_sensors():
+    raw = {"collector":"sensors","collected_at":"2026-07-28T00:00:00Z",
+           "elevated":True,"ok":True,"error":None,
+           "data":[{"name":"+12V","kind":"voltage","value":11.6,"unit":"V","min":11.4,"max":12.1}]}
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    t = build_timeline({"sensors": parse_collector_result(raw)})
+    assert t.sensors[0].name == "+12V" and t.sensors[0].min == 11.4

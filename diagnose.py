@@ -13,14 +13,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="PC Health Intelligence — Level 1")
     parser.add_argument("--out", default="reports", help="output directory")
     parser.add_argument("--no-open", action="store_true", help="do not open the report")
+    parser.add_argument("--sensors", action="store_true",
+                        help="opt-in deep hardware sensors (loads a signed driver; needs admin)")
     args = parser.parse_args()
+
+    collector_names = list(COLLECTOR_NAMES)
+    if args.sensors:
+        collector_names.append("sensors")
 
     print("Collecting diagnostics (this may take a minute)...")
     results = {}
-    for name in COLLECTOR_NAMES:
+    for name in collector_names:
         results[name] = run_collector(name)
         status = "ok" if results[name].ok else f"FAILED: {results[name].error}"
         print(f"  - {name}: {status}")
+
+    if args.sensors and results.get("sensors") and not results["sensors"].data:
+        print("Note: deep sensors unavailable (LibreHardwareMonitorLib.dll missing); "
+              "using baseline signals.")
 
     config = default_config()
     html_path, json_path, score = run_pipeline(results, Path(args.out), config)

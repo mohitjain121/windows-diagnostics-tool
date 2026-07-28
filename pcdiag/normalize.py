@@ -218,6 +218,14 @@ def _norm_thermal(result: CollectorResult, timeline: Timeline) -> None:
                 source=row.get("source", ""), detail=row.get("detail", "")))
 
 
+def _norm_sensors(result: CollectorResult, timeline: Timeline) -> None:
+    for row in result.data:
+        timeline.sensors.append(SensorReading(
+            name=row.get("name", ""), kind=row.get("kind", "temp"),
+            value=float(row.get("value") or 0.0), unit=row.get("unit", ""),
+            min=row.get("min"), max=row.get("max")))
+
+
 # name -> normalizer function.
 NORMALIZERS = {
     "system_snapshot": _norm_system_snapshot,
@@ -231,6 +239,7 @@ NORMALIZERS = {
     "memory_diag": _norm_memory_diag,
     "memory_config": _norm_memory_config,
     "thermal": _norm_thermal,
+    "sensors": _norm_sensors,
     "updates": _norm_updates,
     "reliability": _norm_reliability,
 }
