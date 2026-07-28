@@ -25,6 +25,10 @@ class CrashEvent:
     source: str
     bugcheck_code: str | None
     message: str
+    actual_when: datetime | None = None
+    actual_local_hour: int | None = None
+    sleep_in_progress: int | None = None
+    power_button: int | None = None
 
 
 @dataclass
@@ -85,6 +89,33 @@ class MinidumpFile:
 
 
 @dataclass
+class MemoryConfig:
+    dimm_count: int
+    rated_mts: int | None
+    configured_mts: int | None
+    part_number: str
+    overclocked: bool | None
+
+
+@dataclass
+class ThermalEvent:
+    when: datetime
+    kind: str  # throttle | critical
+    source: str
+    detail: str
+
+
+@dataclass
+class SensorReading:
+    name: str
+    kind: str  # temp | fan | voltage | clock
+    value: float
+    unit: str
+    min: float | None = None
+    max: float | None = None
+
+
+@dataclass
 class CollectorMeta:
     name: str
     ok: bool
@@ -104,3 +135,6 @@ class Timeline:
     memory_diags: list[MemoryDiagResult] = field(default_factory=list)
     minidumps: list[MinidumpFile] = field(default_factory=list)
     meta: list[CollectorMeta] = field(default_factory=list)
+    memory_config: MemoryConfig | None = None
+    thermal_events: list[ThermalEvent] = field(default_factory=list)
+    sensors: list[SensorReading] = field(default_factory=list)
