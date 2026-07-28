@@ -17,3 +17,47 @@ def test_load_hours_fraction():
 
 def test_run_synthesis_empty_timeline_returns_empty():
     assert run_synthesis(Timeline(), [], cfg()) == []
+
+
+def test_power_loss_diagnosis_full():  # uses scenario_power_loss fixtures
+    import json
+    from pathlib import Path
+    from pcdiag.collectors import parse_collector_result
+    from pcdiag.normalize import build_timeline
+    from pcdiag.rules import run_rules
+
+    fx = Path(__file__).parent / "fixtures" / "scenario_power_loss"
+    results = {}
+    for name in ("crashes", "memory_config", "system_snapshot", "changes"):
+        results[name] = parse_collector_result(json.loads((fx / f"{name}.json").read_text("utf-8")))
+    timeline = build_timeline(results)
+    findings = run_rules(timeline, cfg())
+    diagnoses = run_synthesis(timeline, findings, cfg())
+
+    power = [d for d in diagnoses if d.id == "power_loss"]
+    assert power, "expected a power_loss diagnosis"
+    d = power[0]
+    assert d.confidence.value == "high"          # 4 KP-41, no WHEA
+    assert d.timing is not None                  # evening/night clustered
+    assert any("Software BSOD" in r for r in d.ruled_out)
+    assert any("RAM errors" in r for r in d.ruled_out)
+    assert any("Sleep/resume" in r for r in d.ruled_out)
+    tiers = {s.tier for s in d.action_plan}
+    assert tiers == {1, 2, 3}
+    # iGPU present in snapshot -> integrated-graphics isolation step exists
+    assert any("integrated" in s.detail.lower() for s in d.action_plan)
+    # a tuning utility change is present -> uninstall step exists
+    assert any("uninstall" in s.title.lower() for s in d.action_plan)
+
+
+def test_power_loss_absent_when_bugcheck_present():
+    from pcdiag.models import CrashEvent
+    from pcdiag.rules import Confidence, Evidence, Finding, Severity
+    t = Timeline()
+    t.crashes.append(CrashEvent(when=datetime(2026,7,27,tzinfo=timezone.utc),
+        kind="bugcheck", event_id=1001, source="WER", bugcheck_code="0x9f", message="x"))
+    finding = Finding(id="unexpected_shutdowns", title="x", category="stability",
+        severity=Severity.CRITICAL, confidence=Confidence.HIGH,
+        evidence=[Evidence(label="l", detail="d")], recommendation="r")
+    from pcdiag.synthesize import _synthesize_power_loss
+    assert _synthesize_power_loss(t, [finding], cfg()) is None

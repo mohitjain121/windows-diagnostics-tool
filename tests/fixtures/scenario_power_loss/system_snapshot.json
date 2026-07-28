@@ -1,0 +1,4 @@
+{"collector":"system_snapshot","collected_at":"2026-07-28T00:00:00Z","elevated":true,"ok":true,"error":null,
+ "data":[{"cpu_name":"Example CPU 8-Core","gpu_names":["Example Radeon Graphics","Example Radeon RX 0000"],
+          "ram_total_gb":32.0,"os_caption":"Windows","os_build":"00000","uptime_hours":1.0,
+          "cpu_load_pct":5.0,"mem_used_pct":30.0,"system_disk_free_pct":50.0}]}
