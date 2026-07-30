@@ -2,6 +2,9 @@
 *.local.ps1
 *.log
 *.pyc
+.claude/
+.wolf/
+CLAUDE.md
 .pytest_cache/
 .venv/
 __pycache__/
